@@ -59,11 +59,11 @@ class TestDataProcessor(unittest.TestCase):
         """Test missing value detection"""
         self.processor.data = self.test_data
         missing_report = self.processor.detect_missing_values()
-        
         # Should detect 2 missing values
         self.assertEqual(len(missing_report), 2)
-        self.assertIn('age', missing_report['Column'].values)
-        self.assertIn('income', missing_report['Column'].values)
+        cols_with_missing = {row['Column'] for row in missing_report}
+        self.assertIn('age', cols_with_missing)
+        self.assertIn('income', cols_with_missing)
     
     def test_impute_missing_values(self):
         """Test missing value imputation"""

@@ -659,15 +659,23 @@
             summaryCard.style.display = 'block';
         }
 
+        function numericOnly(keys, dtypes){
+            return keys.filter(k => {
+                const t = dtypes[k] || '';
+                return t.includes('float') || t.includes('int');
+            });
+        }
+
         function showConfiguration(summary) {
             const configCard = document.getElementById('configCard');
             const columns = summary.column_names;
+            const numericCols = numericOnly(columns, summary.data_types);
             
             // Populate column selectors
             populateSelect(imputationColumns, columns);
             populateSelect(outlierColumns, columns);
-            populateSelect(weightColumn, columns);
-            populateSelect(estimateColumns, columns);
+            populateSelect(weightColumn, numericCols);
+            populateSelect(estimateColumns, numericCols);
             
             configCard.style.display = 'block';
         }
@@ -681,6 +689,35 @@
                 selectElement.appendChild(optionElement);
             });
             updateBadges();
+        }
+
+        async function postJsonWithRetry(url, payload, retries=1, delayMs=4000){
+            let attempt = 0;
+            while(true){
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const contentType = res.headers.get('content-type') || '';
+                const text = await res.text();
+                let data;
+                if (contentType.includes('application/json')) {
+                    try { data = JSON.parse(text); } catch { data = { success:false, error:'Invalid JSON response' }; }
+                } else {
+                    data = { success:false, error: (text && text.trim().length>0 ? text.trim() : `HTTP ${res.status}`) };
+                }
+                if (res.status === 503 && attempt < retries){
+                    notify('error', 'Service is waking up. Retrying...');
+                    await new Promise(r => setTimeout(r, delayMs));
+                    attempt += 1;
+                    continue;
+                }
+                if (!res.ok || data.error || data.success === false){
+                    throw new Error(data.error || `HTTP ${res.status}`);
+                }
+                return data;
+            }
         }
 
         function processData() {
@@ -714,28 +751,7 @@
             if (currentData && currentData.dataset_id) {
                 payload.dataset_id = currentData.dataset_id;
             }
-            fetch('/clean', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(async (response) => {
-                const contentType = response.headers.get('content-type') || '';
-                const text = await response.text();
-                let data;
-                if (contentType.includes('application/json')) {
-                    try { data = JSON.parse(text); } catch { data = { success: false, error: 'Invalid JSON response' }; }
-                } else {
-                    const message = text && text.trim().length > 0 ? text.trim() : `HTTP ${response.status}`;
-                    throw new Error(message);
-                }
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || `HTTP ${response.status}`);
-                }
-                return data;
-            })
+            postJsonWithRetry('/clean', payload, 1, 4000)
             .then(data => {
                 if (data.success) {
                     processingResults = data;

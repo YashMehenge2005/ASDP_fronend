@@ -11,6 +11,7 @@ import base64
 from datetime import datetime
 import zipfile
 from werkzeug.utils import secure_filename
+from uuid import uuid4
 import tempfile
 import warnings
 import math
@@ -324,7 +325,33 @@ class DataProcessor:
     def apply_weights(self, weight_column):
         """Apply survey weights"""
         if weight_column in self.data.columns:
-            self.weights = self.data[weight_column]
+            # Coerce to numeric weights and guard invalids
+            try:
+                import pandas as pd  # Lazy import
+                raw_weights = self.data[weight_column]
+                numeric_weights = pd.to_numeric(raw_weights, errors='coerce')
+                non_numeric_count = int(numeric_weights.isna().sum())
+                total_count = int(len(numeric_weights))
+                if non_numeric_count > 0:
+                    self.cleaning_log.append(
+                        f"Weight column '{weight_column}' contained {non_numeric_count}/{total_count} non-numeric entries; these will be ignored."
+                    )
+                # Disallow negative weights and zeros by treating as missing
+                numeric_weights = numeric_weights.mask(numeric_weights <= 0)
+                if numeric_weights.notna().sum() == 0:
+                    self.cleaning_log.append(
+                        f"No valid positive numeric weights in '{weight_column}'. Proceeding without weights."
+                    )
+                    self.weights = None
+                    return False
+                self.weights = numeric_weights
+            except Exception:
+                # If anything goes wrong, proceed without weights
+                self.weights = None
+                self.cleaning_log.append(
+                    f"Failed to coerce weight column '{weight_column}' to numeric. Proceeding without weights."
+                )
+                return False
             self.cleaning_log.append(f"Applied weights from column: {weight_column}")
             return True
         else:
@@ -355,26 +382,41 @@ class DataProcessor:
                 }
             }
             
-            # Weighted estimates
+            # Weighted estimates (guard numeric and positive weights; align masks)
             if self.weights is not None:
-                weight_sum = self.weights.sum()
-                if weight_sum == 0:
-                    weighted_mean = float('nan')
-                    weighted_std = float('nan')
-                    weighted_se = float('nan')
-                else:
-                    weighted_mean = (self.data[column] * self.weights).sum() / weight_sum
-                    weighted_variance = (((self.data[column] - weighted_mean) ** 2) * self.weights).sum() / weight_sum
-                    weighted_std = math.sqrt(weighted_variance)
-                    weighted_se = weighted_std / math.sqrt(len(self.data))
-                
-                estimates[column]['weighted'] = {
-                    'mean': weighted_mean,
-                    'std': weighted_std,
-                    'se': weighted_se,
-                    'ci_95_lower': weighted_mean - 1.96 * weighted_se,
-                    'ci_95_upper': weighted_mean + 1.96 * weighted_se
-                }
+                try:
+                    import pandas as pd  # Lazy import
+                    x = self.data[column]
+                    w = pd.to_numeric(self.weights, errors='coerce')
+                    mask = x.notna() & w.notna()
+                    x = x[mask]
+                    w = w[mask]
+                    # Positive weights only
+                    mask_pos = w > 0
+                    x = x[mask_pos]
+                    w = w[mask_pos]
+                    weight_sum = w.sum()
+                    if weight_sum <= 0 or len(x) == 0:
+                        weighted_mean = float('nan')
+                        weighted_std = float('nan')
+                        weighted_se = float('nan')
+                    else:
+                        weighted_mean = (x * w).sum() / weight_sum
+                        weighted_variance = (((x - weighted_mean) ** 2) * w).sum() / weight_sum
+                        weighted_std = math.sqrt(float(weighted_variance))
+                        weighted_se = weighted_std / math.sqrt(len(x))
+                    estimates[column]['weighted'] = {
+                        'mean': weighted_mean,
+                        'std': weighted_std,
+                        'se': weighted_se,
+                        'ci_95_lower': weighted_mean - 1.96 * weighted_se,
+                        'ci_95_upper': weighted_mean + 1.96 * weighted_se
+                    }
+                except Exception:
+                    # If weighted calc fails, continue with unweighted only
+                    self.cleaning_log.append(
+                        f"Weighted estimate failed for '{column}'; using unweighted only."
+                    )
         
         self.estimates = estimates
         self.cleaning_log.append(f"Calculated estimates for {len(numeric_columns)} columns")
@@ -390,22 +432,40 @@ class DataProcessor:
             # If plotly is not installed, return empty plots with a hint
             self.cleaning_log.append("Plotly not installed; skipping visualizations.")
             return plots
+        # Allow disabling plots via environment (useful on low-memory Render free plan)
+        if os.environ.get('DISABLE_PLOTS', '').lower() in ('1', 'true', 'yes'):
+            self.cleaning_log.append("Visualizations disabled by DISABLE_PLOTS env var.")
+            return plots
+        # Sample rows to keep plot memory/time bounded
+        try:
+            import pandas as pd  # type: ignore
+            max_rows = int(os.environ.get('MAX_PLOT_ROWS', '5000'))
+        except Exception:
+            max_rows = 5000
+        df_plot = self.data
+        if len(df_plot) > max_rows:
+            try:
+                df_plot = df_plot.sample(n=max_rows, random_state=42)
+                self.cleaning_log.append(f"Sampled {max_rows} rows for plotting out of {len(self.data)} total.")
+            except Exception:
+                df_plot = self.data.head(max_rows)
+                self.cleaning_log.append(f"Trimmed to first {max_rows} rows for plotting out of {len(self.data)} total.")
         
         # Distribution plots for numeric columns
-        numeric_columns = self.data.select_dtypes(include=['number']).columns[:5]  # Limit to first 5 columns
+        numeric_columns = df_plot.select_dtypes(include=['number']).columns[:5]  # Limit to first 5 columns
         
         for column in numeric_columns:
-            fig = px.histogram(self.data, x=column, title=f'Distribution of {column}')
+            fig = px.histogram(df_plot, x=column, title=f'Distribution of {column}')
             plots[f'dist_{column}'] = fig.to_html(full_html=False)
         
         # Correlation heatmap
         if len(numeric_columns) > 1:
-            corr_matrix = self.data[numeric_columns].corr()
+            corr_matrix = df_plot[numeric_columns].corr()
             fig = px.imshow(corr_matrix, title='Correlation Matrix')
             plots['correlation'] = fig.to_html(full_html=False)
         
         # Missing values plot
-        missing_data = self.data.isnull().sum()
+        missing_data = df_plot.isnull().sum()
         if missing_data.sum() > 0:
             fig = px.bar(x=missing_data.index, y=missing_data.values, title='Missing Values by Column')
             plots['missing'] = fig.to_html(full_html=False)
@@ -774,7 +834,9 @@ def upload_file():
         return jsonify({'error': 'No file selected'}), 400
     
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        original_name = secure_filename(file.filename)
+        unique_prefix = datetime.now().strftime('%Y%m%d%H%M%S') + '_' + uuid4().hex[:8]
+        filename = f"{unique_prefix}_{original_name}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
@@ -873,7 +935,7 @@ def clean_data():
             plots = processor.generate_visualizations()
         except Exception:
             # Non-fatal for processing; continue without plots
-            plots = []
+            plots = {}
 
         # Persist processing run details
         try:
