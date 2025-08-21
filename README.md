@@ -229,3 +229,6 @@ This application is developed for the Ministry of Statistics and Programme Imple
 **Developed for**: Ministry of Statistics and Programme Implementation (MoSPI)  
 **Purpose**: Automated Data Preparation, Estimation and Report Writing  
 **Technology Stack**: Python, Flask, Pandas, Scikit-learn, Plotly, Bootstrap
+
+# ASDP
+
