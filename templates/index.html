@@ -607,7 +607,7 @@
                 return data;
             })
             .then(data => {
-                currentData = data.summary;
+                currentData = Object.assign({ dataset_id: data.dataset_id || null }, data.summary);
                 showDataSummary(data.summary);
                 showConfiguration(data.summary);
                 progressBar.style.width = '100%';
@@ -710,12 +710,16 @@
             document.getElementById('processingSpinner').style.display = 'block';
             document.getElementById('resultsContent').style.display = 'none';
 
+            const payload = { config: config };
+            if (currentData && currentData.dataset_id) {
+                payload.dataset_id = currentData.dataset_id;
+            }
             fetch('/clean', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ config: config })
+                body: JSON.stringify(payload)
             })
             .then(response => response.json())
             .then(data => {

@@ -801,7 +801,12 @@ def upload_file():
                     'data_types': processor.data.dtypes.astype(str).to_dict(),
                     'missing_values': processor.detect_missing_values()
                 }
-                return jsonify({'success': True, 'summary': summary})
+                # Return dataset_id if available so clients can include it in follow-up requests
+                try:
+                    ds_id = ds.id
+                except Exception:
+                    ds_id = None
+                return jsonify({'success': True, 'summary': summary, 'dataset_id': ds_id})
             except Exception as e:
                 return jsonify({'error': f'Failed to summarize data: {str(e)}'}), 400
         else:
@@ -811,11 +816,22 @@ def upload_file():
 
 @app.route('/clean', methods=['POST'])
 def clean_data():
-    # Ensure data has been uploaded in this runtime before processing
+    data = request.json or {}
+    # Ensure data is loaded in this process; on Render free, only one worker is used, but guard anyway
     if processor.data is None:
-        return jsonify({'error': 'No dataset loaded. Please upload a CSV/Excel file first.'}), 400
-
-    data = request.json
+        try:
+            dataset_id = data.get('dataset_id')
+            ds = None
+            if dataset_id is not None:
+                ds = Dataset.query.get(dataset_id)
+            if ds is None:
+                ds = Dataset.query.order_by(Dataset.uploaded_at.desc()).first()
+            if ds and ds.filepath and os.path.exists(ds.filepath):
+                processor.load_data(ds.filepath)
+        except Exception:
+            ds = None
+        if processor.data is None:
+            return jsonify({'error': 'No dataset loaded. Please upload a CSV/Excel file first.'}), 400
     cleaning_config = data.get('config', {})
     
     try:

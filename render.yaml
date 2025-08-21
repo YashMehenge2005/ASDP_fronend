@@ -5,7 +5,7 @@ services:
     plan: free
     autoDeploy: true
     buildCommand: pip install -r requirements.txt
-    startCommand: bash -c "gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT app:app"
+    startCommand: bash -c "gunicorn -w 1 -k gthread -b 0.0.0.0:$PORT app:app"
     envVars:
       - key: SECRET_KEY
         generateValue: true
