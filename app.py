@@ -811,6 +811,10 @@ def upload_file():
 
 @app.route('/clean', methods=['POST'])
 def clean_data():
+    # Ensure data has been uploaded in this runtime before processing
+    if processor.data is None:
+        return jsonify({'error': 'No dataset loaded. Please upload a CSV/Excel file first.'}), 400
+
     data = request.json
     cleaning_config = data.get('config', {})
     
@@ -836,12 +840,19 @@ def clean_data():
             if weight_column:
                 processor.apply_weights(weight_column)
         
-        # Calculate estimates
+        # Calculate estimates (guard when specific columns are provided but missing)
         estimate_columns = cleaning_config.get('estimate_columns', None)
-        estimates = processor.calculate_estimates(columns=estimate_columns)
+        try:
+            estimates = processor.calculate_estimates(columns=estimate_columns)
+        except Exception as calc_error:
+            return jsonify({'error': f'Failed to calculate estimates: {str(calc_error)}'}), 400
         
         # Generate visualizations
-        plots = processor.generate_visualizations()
+        try:
+            plots = processor.generate_visualizations()
+        except Exception:
+            # Non-fatal for processing; continue without plots
+            plots = []
 
         # Persist processing run details
         try:
