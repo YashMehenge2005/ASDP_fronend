@@ -34,6 +34,11 @@ login_manager.login_view = 'login'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)
 
+# Lightweight health endpoint for Render
+@app.route('/healthz')
+def healthz():
+    return jsonify({"status": "ok"})
+
 # Auth models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
