@@ -897,7 +897,8 @@ def clean_data():
         })
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        # Ensure we always return JSON, never HTML error pages
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 400
 
 @app.route('/report', methods=['POST'])
 def generate_report():
