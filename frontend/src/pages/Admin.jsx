@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
+import { API_BASE_URL } from '../config.js'
 
 export default function Admin(){
 	const [summary, setSummary] = useState(null)
@@ -15,7 +16,7 @@ export default function Admin(){
 	}
 
 	useEffect(() => {
-		fetch('/admin/summary', { credentials:'include' }).then(async (res) => {
+		fetch(`${API_BASE_URL}/admin/summary`, { credentials:'include' }).then(async (res) => {
 			const contentType = res.headers.get('content-type') || ''
 			if(!contentType.includes('application/json')){
 				const text = await res.text(); throw new Error(text || `HTTP ${res.status}`)
@@ -28,7 +29,7 @@ export default function Admin(){
 
 	async function updateRole(userId, role){
 		const form = new FormData(); form.append('role', role)
-		const res = await fetch(`/admin/user/${userId}/role`, { method:'POST', body: form, credentials:'include' })
+		const res = await fetch(`${API_BASE_URL}/admin/user/${userId}/role`, { method:'POST', body: form, credentials:'include' })
 		if(!res.ok){ const text = await res.text(); throw new Error(text || `HTTP ${res.status}`) }
 		setSummary(s => !s ? s : { ...s, all_users: s.all_users.map(u => u.id === userId ? { ...u, role } : u) })
 	}

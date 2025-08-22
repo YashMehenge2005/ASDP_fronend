@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { API_BASE_URL } from '../config.js'
 
 export default function Profile(){
 	const [username, setUsername] = useState('')
@@ -18,7 +19,7 @@ export default function Profile(){
     useEffect(()=>{
         (async ()=>{
             try{
-                const res = await fetch('/me', { credentials:'include' })
+                const res = await fetch(`${API_BASE_URL}/me`, { credentials:'include' })
                 const data = await res.json()
                 if(!res.ok || !data.authenticated){
                     navigate('/login')
@@ -42,7 +43,7 @@ export default function Profile(){
 			form.append('email', email)
 			if(password) form.append('password', password)
 			if(avatarFile) form.append('avatar', avatarFile)
-			const res = await fetch('/profile', { method:'POST', body: form, credentials:'include' })
+			const res = await fetch(`${API_BASE_URL}/profile`, { method:'POST', body: form, credentials:'include' })
 			if(!res.ok){
 				const text = await res.text(); throw new Error(text || `HTTP ${res.status}`)
 			}
@@ -50,7 +51,7 @@ export default function Profile(){
 			setPassword('')
             try{
                 await refresh()
-                const resMe = await fetch('/me', { credentials:'include' })
+                const resMe = await fetch(`${API_BASE_URL}/me`, { credentials:'include' })
                 const dataMe = await resMe.json()
                 if(resMe.ok && dataMe.authenticated){
                     setUsername(dataMe.user.username || '')

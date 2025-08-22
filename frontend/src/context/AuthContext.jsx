@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { API_BASE_URL } from '../config.js'
 
 const AuthContext = createContext({ user:null, authenticated:false, refresh:()=>{}, login:async()=>{}, logout:async()=>{} })
 
@@ -7,7 +8,7 @@ export function AuthProvider({ children }){
 
 	const refresh = useCallback(async ()=>{
 		try{
-			const res = await fetch('/me', { credentials:'include' })
+			const res = await fetch(`${API_BASE_URL}/me`, { credentials:'include' })
 			const data = await res.json()
 			if(res.ok && data.authenticated){ setUser(data.user) } else { setUser(null) }
 		}catch{ setUser(null) }
@@ -16,7 +17,7 @@ export function AuthProvider({ children }){
 	useEffect(()=>{ refresh() }, [refresh])
 
 	const login = useCallback(async (username, password)=>{
-		const res = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ username, password }), credentials:'include' })
+		const res = await fetch(`${API_BASE_URL}/login`, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ username, password }), credentials:'include' })
 		const contentType = res.headers.get('content-type') || ''
 		if(contentType.includes('application/json')){
 			const data = await res.json()
@@ -28,7 +29,7 @@ export function AuthProvider({ children }){
 	}, [refresh])
 
 	const logout = useCallback(async ()=>{
-		await fetch('/logout', { credentials:'include' }); await refresh()
+		await fetch(`${API_BASE_URL}/logout`, { credentials:'include' }); await refresh()
 	}, [refresh])
 
 	return (

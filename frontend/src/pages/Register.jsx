@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
+import { API_BASE_URL } from '../config.js'
 
 export default function Register(){
 	const [username, setUsername] = useState('')
@@ -20,13 +21,19 @@ export default function Register(){
 			form.append('email', email)
 			form.append('password', password)
 			form.append('confirm', confirm)
-			const res = await fetch('/register', { method:'POST', body: form })
-			if(!res.ok){
-				const text = await res.text();
-				throw new Error(`HTTP ${res.status}`)
+			const res = await fetch(`${API_BASE_URL}/register`, { method:'POST', body: form })
+			const contentType = res.headers.get('content-type') || ''
+			if(contentType.includes('application/json')){
+				const data = await res.json()
+				if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`)
+				setSuccess('Account created successfully')
+				navigate('/')
+			} else if(!res.ok){
+				const text = await res.text(); throw new Error(text || `HTTP ${res.status}`)
+			} else {
+				setSuccess('Account created successfully')
+				navigate('/')
 			}
-			setSuccess('Account created')
-			navigate('/')
 		}catch(err){ setError(err.message) }
 	}
 

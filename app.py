@@ -690,18 +690,18 @@ def register():
     confirm = data.get('confirm') or ''
 
     if not username or not password:
-        return render_template('register.html', error='Username and password are required'), 400
+        return jsonify({"error": "Username and password are required"}), 400
     if password != confirm:
-        return render_template('register.html', error='Passwords do not match'), 400
+        return jsonify({"error": "Passwords do not match"}), 400
     if User.query.filter_by(username=username).first():
-        return render_template('register.html', error='Username already exists'), 400
+        return jsonify({"error": "Username already exists"}), 400
 
     user = User(username=username, email=email, role='user')
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    return redirect(url_for('index'))
+    return jsonify({"success": True, "message": "Account created successfully"})
 
 
 @app.route('/logout', methods=['GET', 'POST'])
