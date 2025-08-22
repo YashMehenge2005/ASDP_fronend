@@ -1,6 +1,6 @@
 // API Configuration
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://asdp-g3cm.onrender.com'  // Production backend URL
+  ? 'https://asdp-fba8.onrender.com'  // Production backend URL
   : ''; // Development - uses Vite proxy
 
 export { API_BASE_URL };

@@ -8,13 +8,16 @@ export default function Login(){
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState('')
+	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
 	const { login } = useAuth()
 
 	async function onSubmit(e){
 		e.preventDefault()
 		setError('')
+		setLoading(true)
 		try{
+			console.log('Attempting login to:', `${API_BASE_URL}/login`)
 			await login(username, password)
 			// Decide destination based on current user role
 			try{
@@ -24,9 +27,16 @@ export default function Login(){
 					navigate(data.user.role === 'admin' ? '/admin' : '/')
 					return
 				}
-			}catch{}
+			}catch(err){
+				console.error('Error checking user role:', err)
+			}
 			navigate('/')
-		}catch(err){ setError(err.message) }
+		}catch(err){ 
+			console.error('Login error:', err)
+			setError(err.message || 'Login failed. Please try again.') 
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -50,7 +60,9 @@ export default function Login(){
 							<span className="input-group-text"><i className="fas fa-key"></i></span>
 							<input className="form-control" type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
 						</div>
-						<button className="btn btn-primary w-100" type="submit">Login</button>
+						<button className="btn btn-primary w-100" type="submit" disabled={loading}>
+							{loading ? 'Logging in...' : 'Login'}
+						</button>
 					</form>
 					<div className="d-flex justify-content-between align-items-center mt-3">
 						<Link to="/register">Create account</Link>
