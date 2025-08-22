@@ -67,6 +67,11 @@ def deploy_test():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
+    # Skip API routes
+    if path.startswith(('api/', 'login', 'register', 'logout', 'me', 'upload', 'clean', 'report', 'download_data', 'admin', 'profile', 'avatars', 'healthz', 'test', 'deploy-test')):
+        return jsonify({"message": "ASDP API ready. Use the React frontend."}), 404
+    
+    # Serve static files
     if path and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
     return send_from_directory(app.static_folder, 'index.html')
@@ -676,9 +681,7 @@ class DataProcessor:
 # Global processor instance
 processor = DataProcessor()
 
-@app.route('/')
-def index():
-    return jsonify({"message": "ASDP API ready. Use the React frontend."})
+# Removed conflicting route - React app will handle root
 
 
 # Authentication pages and handlers
