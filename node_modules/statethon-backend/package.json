@@ -1,0 +1,11 @@
+{
+  "name": "statethon-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Statethon application",
+  "main": "main.py",
+  "scripts": {
+    "start": "python main.py",
+    "dev": "python main.py",
+    "test": "python test_app.py"
+  }
+}
