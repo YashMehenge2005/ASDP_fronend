@@ -21,13 +21,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-# Configure CORS to allow all origins for now (we'll restrict later)
-CORS(app, 
-     origins=['*'],  # Allow all origins temporarily
-     supports_credentials=True,
-     allow_headers=['Content-Type', 'Authorization', 'Accept'],
-     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-     expose_headers=['Access-Control-Allow-Credentials'])
+# Simple CORS configuration - allow everything
+CORS(app, origins='*', supports_credentials=True)
 
 # Database and authentication setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -41,25 +36,11 @@ login_manager.login_view = 'login'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)
 
-# Global CORS handler - comprehensive
+# Simple CORS handler
 @app.after_request
 def after_request(response):
-    # Add CORS headers to all responses
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-    return response
-
-# Handle preflight requests
-@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
-@app.route('/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    response = make_response()
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
     return response
 
 # Lightweight health endpoint for Render
@@ -71,6 +52,16 @@ def healthz():
 @app.route('/test')
 def test():
     return jsonify({"message": "Backend API is working", "timestamp": datetime.utcnow().isoformat()})
+
+# Force deployment test endpoint
+@app.route('/deploy-test')
+def deploy_test():
+    return jsonify({
+        "status": "success", 
+        "message": "Latest CORS fixes deployed successfully",
+        "cors_enabled": True,
+        "timestamp": datetime.utcnow().isoformat()
+    })
 
 # Auth models
 class User(UserMixin, db.Model):
