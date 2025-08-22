@@ -4,7 +4,10 @@ services:
     env: python
     plan: free
     autoDeploy: true
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      chmod +x build_frontend.sh
+      ./build_frontend.sh
     startCommand: bash -c "gunicorn -w 1 -k gthread --threads 8 -t 120 --log-level info --access-logfile - --error-logfile - -b 0.0.0.0:$PORT app:app"
     healthCheckPath: /healthz
     envVars:

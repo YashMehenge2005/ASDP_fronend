@@ -1,6 +1,6 @@
 // API Configuration
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://asdp-fba8.onrender.com'  // Production backend URL
+  ? ''  // Production - same domain, no proxy needed
   : ''; // Development - uses Vite proxy
 
 export { API_BASE_URL };
