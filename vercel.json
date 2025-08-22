@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",
-      "use": "@vercel/python"
-    },
-    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -15,29 +11,16 @@
   ],
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/frontend/dist/assets/$1"
-    },
-    {
-      "src": "/vite.svg",
-      "dest": "/frontend/dist/vite.svg"
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "app.py"
+      "dest": "https://asdp-fba8.onrender.com/$1"
     },
     {
       "src": "/(login|register|logout|me|upload|clean|report|download_data|admin|profile|avatars|healthz|test|deploy-test|deployment-status)",
-      "dest": "app.py"
+      "dest": "https://asdp-fba8.onrender.com/$1"
     },
     {
       "src": "/(.*)",
       "dest": "/frontend/dist/index.html"
     }
-  ],
-  "env": {
-    "SECRET_KEY": "your-secret-key-here",
-    "DISABLE_PLOTS": "1",
-    "MAX_PLOT_ROWS": "5000"
-  }
+  ]
 }
