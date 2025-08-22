@@ -34,7 +34,7 @@ echo
 echo "Dependencies installed successfully!"
 echo
 echo "Starting the application..."
-echo "Web interface will be available at: http://localhost:5000"
+echo "Web interface will be available at: https://asdp-g3cm.onrender.com/"
 echo "Press Ctrl+C to stop the application"
 echo
 

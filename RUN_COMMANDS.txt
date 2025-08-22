@@ -21,7 +21,7 @@ py -m venv .venv
 
 5) Start the app
 .venv\Scripts\python run.py
-# Then open http://localhost:5000 in your browser
+# Then open https://asdp-g3cm.onrender.com/ in your browser
 
 6) Accounts
 # Default admin (created on first run):
@@ -34,11 +34,11 @@ py -m venv .venv
 
 7) Quick tests from terminal
 # Upload a sample CSV
-curl.exe -F "file=@uploads/student_data.csv" http://localhost:5000/upload
+curl.exe -F "file=@uploads/student_data.csv" https://asdp-g3cm.onrender.com//upload
 
 # Process data with mean imputation (PowerShell)
 $b='{"config":{"imputation":{"method":"mean"}}}'; \
-Invoke-WebRequest -Uri http://localhost:5000/clean -Method Post -ContentType 'application/json' -Body $b | Select-Object -ExpandProperty Content
+Invoke-WebRequest -Uri https://asdp-g3cm.onrender.com//clean -Method Post -ContentType 'application/json' -Body $b | Select-Object -ExpandProperty Content
 
 8) Stop the app
 # In the terminal where it’s running

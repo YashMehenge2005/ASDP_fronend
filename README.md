@@ -70,7 +70,7 @@ This AI-enhanced application is designed to streamline survey data processing an
 
 4. **Access the application**
    - Open your web browser
-   - Navigate to `http://localhost:5000`
+   - Navigate to `https://asdp-g3cm.onrender.com/`
    - The application will be ready to use
 
 ### Usage Guide

@@ -16,7 +16,7 @@ from app import app
 def open_browser():
     """Open the application in the default web browser after a short delay"""
     time.sleep(2)  # Wait for Flask to start
-    webbrowser.open('http://localhost:5000')
+    webbrowser.open('https://asdp-g3cm.onrender.com/')
 
 def main():
     """Main function to start the application"""
@@ -26,7 +26,7 @@ def main():
     print("=" * 60)
     print()
     print("Starting the application...")
-    print("• Web interface will be available at: http://localhost:5000")
+    print("• Web interface will be available at: https://asdp-g3cm.onrender.com/")
     print("• Press Ctrl+C to stop the application")
     print()
     
