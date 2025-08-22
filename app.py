@@ -39,6 +39,12 @@ login_manager.login_view = 'login'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)
 
+# Global CORS handler
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
 # Lightweight health endpoint for Render
 @app.route('/healthz')
 def healthz():
@@ -698,7 +704,9 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return jsonify({"ready": True, "route": "/register"})
+        response = jsonify({"ready": True, "route": "/register"})
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
 
     data = request.json if request.is_json else request.form
     username = (data.get('username') or '').strip()
@@ -707,18 +715,26 @@ def register():
     confirm = data.get('confirm') or ''
 
     if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+        response = jsonify({"error": "Username and password are required"}), 400
+        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
     if password != confirm:
-        return jsonify({"error": "Passwords do not match"}), 400
+        response = jsonify({"error": "Passwords do not match"}), 400
+        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
     if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already exists"}), 400
+        response = jsonify({"error": "Username already exists"}), 400
+        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
 
     user = User(username=username, email=email, role='user')
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    return jsonify({"success": True, "message": "Account created successfully"})
+    response = jsonify({"success": True, "message": "Account created successfully"})
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 
 @app.route('/logout', methods=['GET', 'POST'])
