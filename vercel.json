@@ -22,5 +22,10 @@
       "src": "/(.*)",
       "dest": "/frontend/dist/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "frontend/dist/index.html": {
+      "maxDuration": 10
+    }
+  }
 }
