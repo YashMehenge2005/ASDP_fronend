@@ -21,7 +21,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-CORS(app, origins=['https://asdp-frontend.netlify.app', 'https://*.netlify.app'], supports_credentials=True)
+CORS(app, 
+     origins=['https://asdp-frontend.netlify.app', 'https://*.netlify.app', 'http://localhost:5173'], 
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 # Database and authentication setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -659,7 +663,9 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        return jsonify({"ready": True, "route": "/login"})
+        response = jsonify({"ready": True, "route": "/login"})
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
 
     # Support form submit or JSON
     data = request.json if request.is_json else request.form
@@ -667,18 +673,24 @@ def login():
     password = data.get('password') or ''
     if not username or not password:
         if request.is_json:
-            return jsonify({'error': 'Username and password required'}), 400
+            response = jsonify({'error': 'Username and password required'}), 400
+            response[0].headers.add('Access-Control-Allow-Credentials', 'true')
+            return response
         return render_template('login.html', error='Username and password required'), 400
 
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
         if request.is_json:
-            return jsonify({'error': 'Invalid credentials'}), 401
+            response = jsonify({'error': 'Invalid credentials'}), 401
+            response[0].headers.add('Access-Control-Allow-Credentials', 'true')
+            return response
         return render_template('login.html', error='Invalid credentials'), 401
 
     login_user(user)
     if request.is_json:
-        return jsonify({'success': True, 'user': {'username': user.username, 'role': user.role}})
+        response = jsonify({'success': True, 'user': {'username': user.username, 'role': user.role}})
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
     next_url = request.args.get('next') or url_for('index')
     return redirect(next_url)
 
@@ -849,8 +861,12 @@ def admin_update_role(user_id: int):
 @app.route('/me')
 def me():
     if current_user.is_authenticated:
-        return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username, 'role': current_user.role, 'email': current_user.email, 'profile_image': current_user.profile_image}})
-    return jsonify({'authenticated': False})
+        response = jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username, 'role': current_user.role, 'email': current_user.email, 'profile_image': current_user.profile_image}})
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+    response = jsonify({'authenticated': False})
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
