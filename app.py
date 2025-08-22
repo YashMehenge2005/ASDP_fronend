@@ -36,13 +36,6 @@ login_manager.login_view = 'login'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)
 
-# Simple CORS handler
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
 # Lightweight health endpoint for Render
 @app.route('/healthz')
 def healthz():
@@ -701,9 +694,7 @@ processor = DataProcessor()
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        response = jsonify({"ready": True, "route": "/login"})
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({"ready": True, "route": "/login"})
 
     # Support form submit or JSON
     data = request.json if request.is_json else request.form
@@ -711,24 +702,18 @@ def login():
     password = data.get('password') or ''
     if not username or not password:
         if request.is_json:
-            response = jsonify({'error': 'Username and password required'}), 400
-            response[0].headers.add('Access-Control-Allow-Credentials', 'true')
-            return response
+            return jsonify({'error': 'Username and password required'}), 400
         return render_template('login.html', error='Username and password required'), 400
 
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
         if request.is_json:
-            response = jsonify({'error': 'Invalid credentials'}), 401
-            response[0].headers.add('Access-Control-Allow-Credentials', 'true')
-            return response
+            return jsonify({'error': 'Invalid credentials'}), 401
         return render_template('login.html', error='Invalid credentials'), 401
 
     login_user(user)
     if request.is_json:
-        response = jsonify({'success': True, 'user': {'username': user.username, 'role': user.role}})
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({'success': True, 'user': {'username': user.username, 'role': user.role}})
     next_url = request.args.get('next') or url_for('index')
     return redirect(next_url)
 
@@ -736,9 +721,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        response = jsonify({"ready": True, "route": "/register"})
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({"ready": True, "route": "/register"})
 
     data = request.json if request.is_json else request.form
     username = (data.get('username') or '').strip()
@@ -747,26 +730,18 @@ def register():
     confirm = data.get('confirm') or ''
 
     if not username or not password:
-        response = jsonify({"error": "Username and password are required"}), 400
-        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({"error": "Username and password are required"}), 400
     if password != confirm:
-        response = jsonify({"error": "Passwords do not match"}), 400
-        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({"error": "Passwords do not match"}), 400
     if User.query.filter_by(username=username).first():
-        response = jsonify({"error": "Username already exists"}), 400
-        response[0].headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return jsonify({"error": "Username already exists"}), 400
 
     user = User(username=username, email=email, role='user')
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    response = jsonify({"success": True, "message": "Account created successfully"})
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
+    return jsonify({"success": True, "message": "Account created successfully"})
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -909,12 +884,8 @@ def admin_update_role(user_id: int):
 @app.route('/me')
 def me():
     if current_user.is_authenticated:
-        response = jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username, 'role': current_user.role, 'email': current_user.email, 'profile_image': current_user.profile_image}})
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
-    response = jsonify({'authenticated': False})
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
+        return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username, 'role': current_user.role, 'email': current_user.email, 'profile_image': current_user.profile_image}})
+    return jsonify({'authenticated': False})
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
