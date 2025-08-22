@@ -6,19 +6,20 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/upload': 'https://asdp-fba8.onrender.com/',
-      '/clean': 'https://asdp-fba8.onrender.com/',
-      '/report': 'https://asdp-fba8.onrender.com/',
-      '/download_data': 'https://asdp-fba8.onrender.com/',
-      '/login': 'https://asdp-fba8.onrender.com/',
-      '/register': 'https://asdp-fba8.onrender.com/',
-      '/profile': 'https://asdp-fba8.onrender.com/',
-      '/logout': 'https://asdp-fba8.onrender.com/',
-      '/admin': 'https://asdp-fba8.onrender.com/',
-      '/admin/summary': 'https://asdp-fba8.onrender.com/',
-      '/avatars': 'https://asdp-fba8.onrender.com/',
-      '/healthz': 'https://asdp-fba8.onrender.com/',
-      '/me': 'https://asdp-fba8.onrender.com/'
+      '/upload': 'http://localhost:5000/',
+      '/clean': 'http://localhost:5000/',
+      '/report': 'http://localhost:5000/',
+      
+      '/download_data': 'http://localhost:5000/',
+      '/login': 'http://localhost:5000/',
+      '/register': 'http://localhost:5000/',
+      '/profile': 'http://localhost:5000/',
+      '/logout': 'http://localhost:5000/',
+      '/admin': 'http://localhost:5000/',
+      '/admin/summary': 'http://localhost:5000/',
+      '/avatars': 'http://localhost:5000/',
+      '/healthz': 'http://localhost:5000/',
+      '/me': 'http://localhost:5000/'
     }
   }
 })
