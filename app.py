@@ -63,12 +63,23 @@ def deploy_test():
         "timestamp": datetime.utcnow().isoformat()
     })
 
+# Deployment status endpoint
+@app.route('/deployment-status')
+def deployment_status():
+    return jsonify({
+        "deployment": "latest",
+        "version": "2024-08-22-v2",
+        "frontend_served": True,
+        "cors_fixed": True,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
 # Serve React app
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
     # Skip API routes
-    if path.startswith(('api/', 'login', 'register', 'logout', 'me', 'upload', 'clean', 'report', 'download_data', 'admin', 'profile', 'avatars', 'healthz', 'test', 'deploy-test')):
+    if path.startswith(('api/', 'login', 'register', 'logout', 'me', 'upload', 'clean', 'report', 'download_data', 'admin', 'profile', 'avatars', 'healthz', 'test', 'deploy-test', 'deployment-status')):
         return jsonify({"message": "ASDP API ready. Use the React frontend."}), 404
     
     # Serve static files
