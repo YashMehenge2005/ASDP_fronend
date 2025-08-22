@@ -4,16 +4,39 @@
     {
       "src": "app.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
+      "dest": "/frontend/dist/assets/$1"
+    },
+    {
+      "src": "/vite.svg",
+      "dest": "/frontend/dist/vite.svg"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "app.py"
+    },
+    {
+      "src": "/(login|register|logout|me|upload|clean|report|download_data|admin|profile|avatars|healthz|test|deploy-test|deployment-status)",
+      "dest": "app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/dist/index.html"
     }
   ],
   "env": {
-    "SECRET_KEY": "@secret_key",
+    "SECRET_KEY": "your-secret-key-here",
     "DISABLE_PLOTS": "1",
     "MAX_PLOT_ROWS": "5000"
   }
