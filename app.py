@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-CORS(app)
+CORS(app, origins=['https://asdp-frontend.netlify.app', 'https://*.netlify.app'], supports_credentials=True)
 
 # Database and authentication setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -38,7 +38,12 @@ os.makedirs(app.config['AVATAR_FOLDER'], exist_ok=True)
 # Lightweight health endpoint for Render
 @app.route('/healthz')
 def healthz():
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "message": "Backend is running"})
+
+# Test endpoint for frontend
+@app.route('/test')
+def test():
+    return jsonify({"message": "Backend API is working", "timestamp": datetime.utcnow().isoformat()})
 
 # Auth models
 class User(UserMixin, db.Model):
