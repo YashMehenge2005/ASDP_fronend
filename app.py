@@ -79,12 +79,14 @@ def deployment_status():
 @app.route('/<path:path>')
 def serve(path):
     # Skip API routes
-    if path.startswith(('api/', 'login', 'register', 'logout', 'me', 'upload', 'clean', 'report', 'download_data', 'admin', 'profile', 'avatars', 'healthz', 'test', 'deploy-test', 'deployment-status')):
+    if path in ['login', 'register', 'logout', 'me', 'upload', 'clean', 'report', 'download_data', 'admin', 'profile', 'avatars', 'healthz', 'test', 'deploy-test', 'deployment-status']:
         return jsonify({"message": "ASDP API ready. Use the React frontend."}), 404
     
     # Serve static files
     if path and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
+    
+    # Serve React app for all other routes
     return send_from_directory(app.static_folder, 'index.html')
 
 # Auth models
