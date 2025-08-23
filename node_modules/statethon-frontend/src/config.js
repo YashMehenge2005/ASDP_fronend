@@ -1,6 +1,6 @@
 // API Configuration
 const API_BASE_URL = import.meta.env.PROD 
-  ? (import.meta.env.VITE_API_BASE_URL || 'https://asdp-psi.vercel.app')  // Production - Deployed backend
+  ? (import.meta.env.VITE_API_BASE_URL || 'https://asdp-g3cm.onrender.com/')  // Production - Deployed backend
   : ''; // Development - uses Vite proxy (empty string means same origin)
 
 // Debug logging for deployment troubleshooting
