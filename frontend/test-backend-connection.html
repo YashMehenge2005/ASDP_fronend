@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Backend Connection Test</h1>
+    <p>Testing connection to: <strong>https://asdp-g3cm.onrender.com</strong></p>
+    
+    <div>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <button onclick="testAPI()">Test API Endpoint</button>
+        <button onclick="testCORS()">Test CORS</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const BACKEND_URL = 'https://asdp-g3cm.onrender.com';
+        
+        function addResult(test, success, message, data = null) {
+            const div = document.createElement('div');
+            div.className = `test ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <strong>${test}:</strong> ${success ? '✅ PASS' : '❌ FAIL'}<br>
+                <small>${message}</small>
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+            `;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/healthz`);
+                const data = await response.json();
+                addResult('Health Check', response.ok, `Status: ${response.status}`, data);
+            } catch (error) {
+                addResult('Health Check', false, `Error: ${error.message}`);
+            }
+        }
+        
+        async function testAPI() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/test`);
+                const data = await response.json();
+                addResult('API Test', response.ok, `Status: ${response.status}`, data);
+            } catch (error) {
+                addResult('API Test', false, `Error: ${error.message}`);
+            }
+        }
+        
+        async function testCORS() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/test`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                addResult('CORS Test', response.ok, `Status: ${response.status} - CORS headers present`, data);
+            } catch (error) {
+                addResult('CORS Test', false, `Error: ${error.message}`);
+            }
+        }
+        
+        // Auto-run tests on load
+        window.onload = function() {
+            setTimeout(testHealth, 500);
+            setTimeout(testAPI, 1000);
+            setTimeout(testCORS, 1500);
+        };
+    </script>
+</body>
+</html>

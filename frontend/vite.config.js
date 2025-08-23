@@ -6,25 +6,38 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      // Proxy all API calls to backend during development
       '/api': {
-        target: 'https://asdp-g3cm.onrender.com',
+        target: 'https://asdp-psi.vercel.app',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '/upload': 'https://asdp-g3cm.onrender.com',
-      '/clean': 'https://asdp-g3cm.onrender.com',
-      '/report': 'https://asdp-g3cm.onrender.com',
-      
-      '/download_data': 'https://asdp-g3cm.onrender.com',
-      '/login': 'https://asdp-g3cm.onrender.com',
-      '/register': 'https://asdp-g3cm.onrender.com',
-      '/profile': 'https://asdp-g3cm.onrender.com',
-      '/logout': 'https://asdp-g3cm.onrender.com',
-      '/admin': 'https://asdp-g3cm.onrender.com',
-      '/admin/summary': 'https://asdp-g3cm.onrender.com',
-      '/avatars': 'https://asdp-g3cm.onrender.com',
-      '/healthz': 'https://asdp-g3cm.onrender.com',
-      '/me': 'https://asdp-g3cm.onrender.com'
+      // Direct API endpoints for development
+      '/upload': 'https://asdp-psi.vercel.app',
+      '/clean': 'https://asdp-psi.vercel.app',
+      '/report': 'https://asdp-psi.vercel.app',
+      '/download_data': 'https://asdp-psi.vercel.app',
+      '/login': 'https://asdp-psi.vercel.app',
+      '/register': 'https://asdp-psi.vercel.app',
+      '/profile': 'https://asdp-psi.vercel.app',
+      '/logout': 'https://asdp-psi.vercel.app',
+      '/admin': 'https://asdp-psi.vercel.app',
+      '/admin/summary': 'https://asdp-psi.vercel.app',
+      '/avatars': 'https://asdp-psi.vercel.app',
+      '/healthz': 'https://asdp-psi.vercel.app',
+      '/me': 'https://asdp-psi.vercel.app'
+    }
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom']
+        }
+      }
     }
   }
 })

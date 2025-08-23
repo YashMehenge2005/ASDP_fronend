@@ -8,7 +8,12 @@
     "backend": "cd backend && python main.py",
     "frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
-    "start": "cd frontend && npm run start"
+    "build-full": "npm run build && npm run copy-static",
+    "copy-static": "mkdir -p static && cp -r frontend/dist/* static/",
+    "start": "cd frontend && npm run start",
+    "deploy": "bash deploy.sh",
+    "test-backend": "cd backend && python -m pytest test_app.py -v",
+    "clean": "rm -rf node_modules frontend/node_modules frontend/dist static"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

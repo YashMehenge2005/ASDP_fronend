@@ -22,7 +22,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Enhanced CORS configuration for production
+# Enhanced CORS configuration for production - UPDATED FOR NETLIFY DEPLOYMENT
 CORS(app, 
      origins=[
          'http://localhost:3000',
@@ -31,11 +31,17 @@ CORS(app,
          'http://127.0.0.1:5173',
          'https://asdp-frontend.netlify.app',
          'https://*.netlify.app',
-         'https://asdp-g3cm.onrender.com'
+         'https://magenta-cannoli-b03bad.netlify.app',
+         'https://friendly-daffodil-223b40.netlify.app',
+         'https://benevolent-wisp-9eadd7.netlify.app',
+         'https://asdp-g3cm.onrender.com',
+         'https://statethon.vercel.app',
+         'https://*.vercel.app'
      ], 
      supports_credentials=True,
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'])
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     expose_headers=['Access-Control-Allow-Credentials'])
 
 # Database and authentication setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -58,7 +64,7 @@ def healthz():
 @app.route('/<path:path>', methods=['OPTIONS'])
 def handle_options(path):
     response = make_response()
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Origin', 'https://magenta-cannoli-b03bad.netlify.app')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
